@@ -5,16 +5,19 @@ using System.Threading.Tasks;
 using api.src.Data;
 using api.src.Interfaces;
 using api.src.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace api.src.Repositories
 {
     public class UserRepository : IUserRepository
     {
+        private readonly UserManager<User> _userManager;
         private readonly ApplicationDbContext _dbcontext;
         
-        public UserRepository(ApplicationDbContext dbcontext)
+        public UserRepository(ApplicationDbContext dbcontext, UserManager<User> userManager)
         {
             _dbcontext = dbcontext;
+            _userManager = userManager;
         }
 
         public async Task<User> GetUserById(string id)
@@ -31,12 +34,11 @@ namespace api.src.Repositories
 
         public async Task<User> GetUserByEmail(string email)
         {
-            var user = await Task.FromResult(_dbcontext.Users.FirstOrDefault(u => u.Email == email));
-
-            if (user == null){
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
                 throw new KeyNotFoundException($"User with email {email} not found.");
             }
-
             return user;
         }
 
