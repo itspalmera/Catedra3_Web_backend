@@ -55,6 +55,8 @@ builder.Services.AddIdentity<User, IdentityRole>(
         opt.Password.RequireUppercase = false;
         opt.Password.RequireNonAlphanumeric = false;
         opt.Password.RequiredLength = 6;
+        opt.User.RequireUniqueEmail = true;
+        opt.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
     }
 ).AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();

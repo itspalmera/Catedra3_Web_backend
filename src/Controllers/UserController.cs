@@ -85,7 +85,7 @@ namespace api.src.Controllers
 
             var user = new User
             {
-
+                UserName = createUserDTO.Email,
                 Email = createUserDTO.Email,
             };
 
