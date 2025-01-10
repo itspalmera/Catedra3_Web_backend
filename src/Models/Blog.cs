@@ -2,17 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 
 namespace api.src.Models
 {
     public class Blog
     {
-        public required int BlogId { get; set; }
-        public required string Title { get; set; }
-        public required DateTime Date { get; set; }
-        public required string ImageUrl { get; set; }
+        public int BlogId { get; set; }
+        public string Title { get; set; }
+        public DateTime Date { get; set; }
+        public string ImageUrl { get; set; }
         // relacion con usuario
-        public required int UserId { get; set; }
-        public required User User { get; set; }
+        public int UserId { get; set; }
+        public User User { get; set; }
     }
 }
