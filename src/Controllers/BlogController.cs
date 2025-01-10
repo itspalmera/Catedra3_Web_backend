@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.src.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/posts")]
     [ApiController]
     public class BlogController : ControllerBase
     {
@@ -20,28 +20,27 @@ namespace api.src.Controllers
         }
 
         // GET ALL BLOGS
-        [HttpPost]
+        [HttpGet]
         public async Task<IActionResult> GetAllBlogs(){
             
-            var users = await _blogRepository.GetAllBlogs();
+            var blogs = await _blogRepository.GetAllBlogs();
 
-            return Ok(users);
+            return Ok(blogs);
         }
 
-
+        /*
         // GET BLOG BY ID
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetBlogById(int id){
-            try
+        public IActionResult GetBlogById(int id)
+        {
+            var blog = _blogRepository.GetBlogById(id);
+            if (blog == null)
             {
-                var blog = await _blogRepository.GetBlogById(id);
-                return Ok(blog);
+                return NotFound();
             }
-            catch (KeyNotFoundException e)
-            {
-                return NotFound(e.Message);
-            }
-        }
+            return Ok(blog);
+        }   
+        */
 
         // CREATE
         [HttpPost]
