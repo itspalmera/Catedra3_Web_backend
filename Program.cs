@@ -13,14 +13,38 @@ using System.Text.Json.Serialization;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.IdentityModel.Tokens;
+using api.src.Repositories;
+using api.src.Interfaces;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
+// AQUI VA CLOUDINARY
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+    });
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IBlogRepository, BlogRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+// CORS para que funcione la api con el frontend
+builder.Services.AddCors(options =>
 {
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.AddPolicy("AllowLocalhost",
+        builder => builder
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials());
 });
+
+
 
 
 builder.Services.AddIdentity<User, IdentityRole>(
@@ -35,7 +59,17 @@ builder.Services.AddIdentity<User, IdentityRole>(
 ).AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
 
+builder.Services.AddDbContext<ApplicationDbContext>(opt =>opt.UseSqlite("Data Source = app.db"));
+
+
+
+// CONFIGURACION DE JWT
+/*
 builder.Services.AddAuthentication(
     opt =>
     {
@@ -57,19 +91,27 @@ builder.Services.AddAuthentication(
         };
     });
 
+*/
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-    });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        // Aplica cualquier migración pendiente en la base de datos.
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -78,8 +120,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// CORS parte 2
+app.UseCors("AllowLocalhost");
 
+app.UseHttpsRedirection();
 app.UseAuthentication(); 
 app.UseAuthorization(); 
 app.MapControllers();
